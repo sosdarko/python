@@ -54,7 +54,7 @@ def evaluate_distance(distance: List) -> float | int:
     return val
 
 def dump_list(l: List):
-    print(f"Length of list: {len(l)}")
+    print(f"Length: {len(l)}")
     print("Elements:")
     for item in l:
         print(item)
@@ -66,33 +66,48 @@ def reduce_world(world: List, guess: List, distance: List):
     world[:] = [el for el in world if calc_distance(list(el), guess) == distance]
 
 
-def choose_possibility(world: List) -> List:
+def choose_possibility(world: List, method: str) -> List:
     if not world:
         return []
-    return list(world[random.randint(0, len(world) - 1)])
+    ret = world[0]
+    # this part to improve: find "middle" list based on distance to the other
+    if method == "random":
+        ret = world[random.randint(0, len(world) - 1)]
+    elif method == "first":
+        ret = world[0]
+    elif method == "middle":
+        ret = world[int(len(world) / 2)]
+    return list(ret)
 
 
-def play_mm_simulation(seq_to_guess):
+def play_mm_simulation(seq_to_guess, method: str = "random"):
     print(seq_to_guess)
     world_of_possibilities = WORLD
     distance = []
     guess = [1,1,2,2]
-    guess_number = 1
+    guess_number = 0
+    progression = []
     while distance != [HIT_COLOR_PLACE for _ in range(COMBINATION_LEN)]:
         print(f"Guess #:{guess_number}: {guess}")
         print(f"Possibilities: {len(world_of_possibilities)}")
+        guess_number += 1
+        progression.append(len(world_of_possibilities))
+        # this step is simulation; otherwise given by other player
         distance = calc_distance(guess, seq_to_guess)
         print(f"Distance: {distance}")
         reduce_world(world_of_possibilities, guess, distance)
         dump_list(world_of_possibilities)
-        guess = choose_possibility(world_of_possibilities)
+        guess = choose_possibility(world_of_possibilities, method)
         if not guess:
             print("No possibilities")
             break
-        guess_number += 1
     print("END")
-    print(f"{guess_number}: {guess}; to guess: {seq_to_guess}")
+    print(f"{guess_number}, {progression}: {guess}; to guess: {seq_to_guess}")
 
-print(f"World size: {len(WORLD)}")
-to_guess: List[int] = [random.randint(1,6) for _ in range(COMBINATION_LEN)]
-play_mm_simulation(to_guess)
+def simulate():
+    print(f"World size: {len(WORLD)}")
+    to_guess: List[int] = [random.randint(1,6) for _ in range(COMBINATION_LEN)]
+    play_mm_simulation(to_guess)
+
+if __name__ == "__main__":
+    simulate()
