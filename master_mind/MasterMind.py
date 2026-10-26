@@ -3,12 +3,16 @@ from typing import List
 import itertools
 
 COLORS = [1, 2, 3, 4, 5, 6]
+COLOR_NAMES = ['RED', 'YELLOW', 'GREEN', 'BLUE', 'ORANGE', 'PURPLE']
+COLOR_NAMES_SHORT = ['R', 'Y', 'G', 'B', 'O', 'P']
 EMPTY_COLOR = 0
 COLORS_CNT = len(COLORS)
 COMBINATION_LEN = 4
 
 HIT_COLOR = 1
+HIT_COLOR_NAME = 'W'
 HIT_COLOR_PLACE = 2
+HIT_COLOR_PLACE_NAME = 'B'
 
 WORLD = list(itertools.product(COLORS, repeat=COMBINATION_LEN))
 
@@ -52,6 +56,7 @@ def evaluate_distance(distance: List) -> float | int:
             val += 25
 
     return val
+
 
 def dump_list(l: List):
     print(f"Length: {len(l)}")
@@ -104,10 +109,46 @@ def play_mm_simulation(seq_to_guess, method: str = "random"):
     print("END")
     print(f"{guess_number}, {progression}: {guess}; to guess: {seq_to_guess}")
 
+
+def get_distance() -> List:
+    answer = input("Answer:")
+    ret = []
+    for a in answer.upper():
+        if a == HIT_COLOR or a == HIT_COLOR_NAME:
+            ret.append(HIT_COLOR)
+        elif a == HIT_COLOR_PLACE or a == HIT_COLOR_PLACE_NAME:
+            ret.append(HIT_COLOR_PLACE)
+    return ret
+
+
+def play_mm(method: str = "random"):
+    world_of_possibilities = WORLD
+    distance = []
+    guess = [1,1,2,2]
+    guess_number = 0
+    progression = []
+    while distance != [HIT_COLOR_PLACE for _ in range(COMBINATION_LEN)]:
+        guess_number += 1
+        progression.append(len(world_of_possibilities))
+        # this step is simulation; otherwise given by other player
+        guess_colors = [COLOR_NAMES[x-1] for x in guess]
+        print(f"Guess #:{guess_number}: {guess_colors}")
+        distance = get_distance()
+        reduce_world(world_of_possibilities, guess, distance)
+        dump_list(world_of_possibilities)
+        guess = choose_possibility(world_of_possibilities, method)
+        if not guess:
+            print("No possibilities")
+            break
+    print("END")
+    guess_colors = [COLOR_NAMES[x-1] for x in guess]
+    print(f"steps: {guess_number}, progression: {progression}, guess: {guess_colors}")
+
+
 def simulate():
     print(f"World size: {len(WORLD)}")
     to_guess: List[int] = [random.randint(1,6) for _ in range(COMBINATION_LEN)]
     play_mm_simulation(to_guess)
 
 if __name__ == "__main__":
-    simulate()
+    play_mm()
