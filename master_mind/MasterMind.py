@@ -1,4 +1,5 @@
 import random
+import sys
 from typing import List
 import itertools
 
@@ -56,6 +57,10 @@ def evaluate_distance(distance: List) -> float | int:
             val += 25
 
     return val
+
+
+def get_possible_answers(combination: List) -> List:
+    pass
 
 
 def dump_list(l: List):
@@ -145,10 +150,14 @@ def play_mm(method: str = "random"):
     print(f"steps: {guess_number}, progression: {progression}, guess: {guess_colors}")
 
 
-def simulate():
+def simulate(method: str = "random"):
     print(f"World size: {len(WORLD)}")
     to_guess: List[int] = [random.randint(1,6) for _ in range(COMBINATION_LEN)]
-    play_mm_simulation(to_guess)
+    play_mm_simulation(to_guess, method)
 
 if __name__ == "__main__":
-    play_mm()
+    if len(sys.argv) > 1:
+        method_in = sys.argv[1]
+    else:
+        method_in = "random"
+    play_mm(method_in)
