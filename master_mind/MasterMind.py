@@ -59,15 +59,56 @@ def evaluate_distance(distance: List) -> float | int:
     return val
 
 
-def get_possible_answers(combination: List) -> List:
-    pass
+def get_possible_answers(combination: List, possibilities: List[List]) -> List:
+    answers = []
+    for comb in possibilities:
+        distance = calc_distance(list(comb), list(combination))
+        if distance not in answers:
+            answers.append(distance)
+    return answers
 
 
-def dump_list(l: List):
+def get_vector_on_distances(combination: List, distances: List[List], possibilities: List[List]) -> List:
+    size_vector = []
+    for distance in distances:
+        class_count = 0
+        for comb in possibilities:
+            if calc_distance(list(comb), list(combination)) == distance:
+                class_count += 1
+        if class_count > 0:
+            size_vector.append(class_count)
+    size_vector.sort(reverse=True)
+    return size_vector
+
+
+def dump_list(l: List, max_print: int = 0) -> None:
     print(f"Length: {len(l)}")
     print("Elements:")
+    cnt = 0
     for item in l:
         print(item)
+        cnt += 1
+        if max_print and cnt > max_print:
+            print('...')
+            break
+
+def dump_possibilities(possibilities: List[List], include_analytics: bool = False, max_print: int = 0) -> None:
+    print(f"Length: {len(possibilities)}")
+    print("Elements:")
+    cnt = 0
+    for item in possibilities:
+        if include_analytics:
+            answers = get_possible_answers(item, possibilities)
+            counts = get_vector_on_distances(item, answers, possibilities)
+            print(f"{item}; answers: {answers}; counts: {counts}")
+        else:
+            print(item)
+        cnt += 1
+        if max_print and cnt > max_print:
+            print('...')
+            break
+    if include_analytics:
+        print("best guess:", choose_smart_possibility(possibilities))
 
 #for c in WORLD:
 #    print(c)
@@ -87,7 +128,24 @@ def choose_possibility(world: List, method: str) -> List:
         ret = world[0]
     elif method == "middle":
         ret = world[int(len(world) / 2)]
+    elif method == "smart":
+        ret = choose_smart_possibility(world)
     return list(ret)
+
+
+def choose_smart_possibility(world: List[List]) -> List:
+    if not world:
+        return []
+    min_count = len(world)
+    best_guess = world[0]
+    for item in world:
+        answers = get_possible_answers(item, world)
+        counts = get_vector_on_distances(item, answers, world)
+        if counts[0] < min_count:
+            min_count = counts[0]
+            best_guess = item
+
+    return best_guess
 
 
 def play_mm_simulation(seq_to_guess, method: str = "random"):
@@ -140,7 +198,7 @@ def play_mm(method: str = "random"):
         print(f"Guess #:{guess_number}: {guess_colors}")
         distance = get_distance()
         reduce_world(world_of_possibilities, guess, distance)
-        dump_list(world_of_possibilities)
+        dump_possibilities(world_of_possibilities, include_analytics=True, max_print=20)
         guess = choose_possibility(world_of_possibilities, method)
         if not guess:
             print("No possibilities")
